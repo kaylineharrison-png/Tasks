@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tasks</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#fdf0f3">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+:root{--bg:#fdf6f0;--card:#fff;--ink:#4a4458;--mute:#9a93a8;--pink:#ffd6e0;--mint:#cdf0e0;--lav:#e2d9f7;--sky:#d3e8fa;--peach:#ffe3cc;--line:#f0e6ef;
+font-family:"Nunito","Quicksand","Trebuchet MS",system-ui,sans-serif}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#2b2735;--card:#383349;--ink:#f1ecf8;--mute:#a9a1bb;--pink:#6e4a5c;--mint:#42675a;--lav:#53496f;--sky:#40586f;--peach:#745a47;--line:#463f58}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);min-height:100vh;padding:calc(env(safe-area-inset-top,0px) + 18px) 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
+main{max-width:520px;margin:0 auto}
+h1{font-size:1.7rem;margin:0 0 2px;font-weight:800}
+.sub{color:var(--mute);margin:0 0 16px;font-size:.95rem}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:16px}
+.day{border:0;border-radius:16px;padding:8px 0;background:var(--card);color:var(--ink);font:inherit;text-align:center;cursor:pointer;position:relative}
+.day small{display:block;color:var(--mute);font-size:.7rem}
+.day b{font-size:1rem}
+.day.sel{background:var(--lav)}
+.day.today small{color:var(--ink);font-weight:800}
+.day.full::after{content:"";position:absolute;bottom:4px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:#7fcfa8}
+.prog{background:var(--card);border-radius:20px;padding:14px 16px;margin-bottom:18px}
+.bar{height:12px;background:var(--line);border-radius:9px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--mint));transition:width .3s}
+h2{font-size:1.05rem;margin:18px 4px 8px}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+li{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:18px;padding:12px 14px}
+li.d{border-left:8px solid var(--pink)}li.w{border-left:8px solid var(--sky)}
+li label{flex:1;display:flex;align-items:center;gap:12px;cursor:pointer;min-width:0}
+li span{overflow-wrap:anywhere}
+li.done span{text-decoration:line-through;color:var(--mute)}
+input[type=checkbox]{appearance:none;width:26px;height:26px;flex:none;border-radius:50%;border:3px solid var(--lav);background:transparent;display:grid;place-content:center;cursor:pointer}
+input[type=checkbox]:checked{background:var(--mint);border-color:var(--mint)}
+input[type=checkbox]:checked::after{content:"✓";color:#2f6b52;font-weight:800;font-size:14px}
+input:focus-visible,button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.x{border:0;background:none;color:var(--mute);font-size:1.3rem;cursor:pointer;padding:4px 8px;border-radius:10px}
+.empty{color:var(--mute);padding:6px 6px;margin:0}
+form{background:var(--card);border-radius:22px;padding:14px;margin-top:22px;display:grid;gap:10px}
+form input[type=text]{width:100%;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:14px;padding:12px;font:inherit}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.seg button,.chips button{border:0;border-radius:12px;padding:9px;background:var(--line);color:var(--ink);font:inherit;cursor:pointer}
+.seg button.on{background:var(--pink)}
+.chips{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.chips button{padding:8px 0;font-size:.8rem}.chips button.on{background:var(--sky)}
+.add{border:0;border-radius:14px;padding:12px;background:var(--mint);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
+[hidden]{display:none!important}
+.cancel{border:0;border-radius:14px;padding:10px;background:var(--line);color:var(--ink);font:inherit;cursor:pointer}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--card);padding:5px;border-radius:18px;margin:10px 0 14px}
+.tabs button{border:0;border-radius:14px;padding:10px;background:none;color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+.tabs button.on{background:var(--pink)}
+.wnav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:16px;padding:6px;margin-bottom:16px;font-weight:700}
+.wnav button{border:0;background:var(--line);color:var(--ink);border-radius:12px;width:40px;height:36px;font-size:1.2rem;cursor:pointer}
+.hint{font-size:.8rem;color:var(--mute);text-align:center;margin-top:14px}
+</style>
+</head>
+<body>
+<main>
+<h1>Tasks</h1>
+<div class="tabs" role="tablist"><button id="tD" role="tab" class="on">Daily</button><button id="tW" role="tab">Weekly</button></div>
+<p class="sub" id="date"></p>
+<div class="wnav" id="wnav" hidden><button id="pw" aria-label="Previous week">‹</button><span id="wr"></span><button id="nw" aria-label="Next week">›</button></div>
+<div class="week" id="week"></div>
+<div class="prog"><span id="ptxt"></span><div class="bar"><i id="pbar"></i></div></div>
+<ul id="L1"></ul>
+<div id="V2"></div>
+<form id="f">
+<input type="text" id="t" placeholder="New task…" maxlength="80" required aria-label="Task name">
+<div class="seg"><button type="button" id="kd" class="on">Every day</button><button type="button" id="kw">Certain days</button></div>
+<div class="chips" id="chips" hidden></div>
+<button class="add" id="add">Add task</button>
+<button type="button" class="cancel" id="cancel" hidden>Cancel editing</button>
+</form>
+<p class="hint" id="hint">Works offline · saved on this device</p>
+</main>
+<script>
+const DN=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const $=id=>document.getElementById(id);
+let S;try{S=JSON.parse(localStorage.getItem("petal")||"null")}catch(e){}
+S=S||{tasks:[{id:1,t:"Drink water",k:"d",days:[]},{id:2,t:"Tidy up",k:"d",days:[]},{id:3,t:"Water plants",k:"w",days:[0,3]},{id:4,t:"Laundry",k:"w",days:[5]}],done:{},n:5};
+const save=()=>{try{localStorage.setItem("petal",JSON.stringify(S))}catch(e){}};
+const key=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const dow=d=>(d.getDay()+6)%7;
+const today=new Date();today.setHours(12);
+let sel=new Date(today);
+const on=(t,d)=>t.k==="d"||t.days.includes(dow(d));
+const isDone=(t,d)=>(S.done[key(d)]||[]).includes(t.id);
+function row(t,d){const li=document.createElement("li");li.className=t.k+(isDone(t,d)?" done":"");
+const lb=document.createElement("label"),c=document.createElement("input");c.type="checkbox";c.checked=isDone(t,d);
+c.onchange=()=>{const k=key(d),a=S.done[k]||[];S.done[k]=c.checked?[...a,t.id]:a.filter(x=>x!==t.id);save();render()};
+const s=document.createElement("span");s.textContent=t.t+(t.k==="w"?"":"");lb.append(c,s);
+const x=document.createElement("button");x.className="x";x.textContent="×";x.setAttribute("aria-label","Delete "+t.t);
+x.onclick=()=>{if(confirm("Delete “"+t.t+"”?")){S.tasks=S.tasks.filter(q=>q.id!==t.id);if(editId===t.id)resetForm();save();render()}};
+const ed=document.createElement("button");ed.className="x";ed.textContent="✎";ed.setAttribute("aria-label","Edit "+t.t);ed.onclick=()=>startEdit(t);
+li.append(lb,ed,x);return li}
+let tab="d";
+function render(){
+const wk=tab==="w",fmt=(d,o)=>d.toLocaleDateString(undefined,o);
+const mon=new Date(sel);mon.setDate(sel.getDate()-dow(sel));
+const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+$("tD").className=wk?"":"on";$("tW").className=wk?"on":"";
+$("tD").setAttribute("aria-selected",!wk);$("tW").setAttribute("aria-selected",wk);
+$("date").hidden=wk;$("date").textContent=fmt(sel,{weekday:"long",month:"long",day:"numeric"});
+$("week").hidden=wk;$("wnav").hidden=!wk;
+$("wr").textContent=fmt(mon,{month:"short",day:"numeric"})+" – "+fmt(sun,{month:"short",day:"numeric"});
+$("week").innerHTML="";
+for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);
+const ts=S.tasks.filter(t=>on(t,d)),b=document.createElement("button");
+b.className="day"+(key(d)===key(sel)?" sel":"")+(key(d)===key(today)?" today":"")+(ts.length&&ts.every(t=>isDone(t,d))?" full":"");
+b.innerHTML="<small>"+DN[i]+"</small><b>"+d.getDate()+"</b>";b.onclick=()=>{sel=d;render()};$("week").append(b)}
+const L=$("L1"),V=$("V2");L.innerHTML="";V.innerHTML="";L.hidden=wk;V.hidden=!wk;
+let all=[];
+const empty=(el,m)=>{const p=document.createElement("p");p.className="empty";p.textContent=m;el.append(p)};
+if(!wk){
+const ts=S.tasks.filter(t=>on(t,sel)).sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:0);
+all=ts.map(t=>[t,sel]);
+if(!ts.length)empty(L,"No tasks for this day.");
+ts.forEach(t=>L.append(row(t,sel)))
+}else{
+const ws=S.tasks.filter(t=>t.k==="w");
+for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);const l=ws.filter(t=>t.days.includes(i));
+if(!l.length)continue;
+const h=document.createElement("h2");h.textContent=fmt(d,{weekday:"long",month:"short",day:"numeric"})+(key(d)===key(today)?" (today)":"");
+const u=document.createElement("ul");l.forEach(t=>{all.push([t,d]);u.append(row(t,d))});V.append(h,u)}
+if(!ws.length)empty(V,"No weekly tasks yet. Add one below and choose “Certain days”.")}
+const dn=all.filter(([t,d])=>isDone(t,d)).length;
+$("ptxt").textContent=all.length?dn+" of "+all.length+" done"+(wk?" this week":"")+(dn===all.length?" 🌸":""):"Nothing planned";
+$("pbar").style.width=(all.length?dn/all.length*100:0)+"%"}
+$("tD").onclick=()=>{tab="d";render()};$("tW").onclick=()=>{tab="w";render()};
+const shift=n=>{sel=new Date(sel);sel.setDate(sel.getDate()+n);render()};
+$("pw").onclick=()=>shift(-7);$("nw").onclick=()=>shift(7);
+let kind="d",days=new Set(),editId=null;const cb=[];
+DN.forEach((n,i)=>{const b=document.createElement("button");b.type="button";b.textContent=n;b.onclick=()=>{days.has(i)?days.delete(i):days.add(i);b.classList.toggle("on")};cb.push(b);$("chips").append(b)});
+function setKind(k){kind=k;$("kd").className=k==="d"?"on":"";$("kw").className=k==="w"?"on":"";$("chips").hidden=k!=="w"}
+$("kd").onclick=()=>setKind("d");$("kw").onclick=()=>setKind("w");
+function resetForm(){editId=null;days=new Set();cb.forEach(b=>b.classList.remove("on"));$("t").value="";setKind("d");$("add").textContent="Add task";$("cancel").hidden=true}
+function startEdit(t){editId=t.id;$("t").value=t.t;days=new Set(t.days);cb.forEach((b,i)=>b.classList.toggle("on",days.has(i)));setKind(t.k);$("add").textContent="Save changes";$("cancel").hidden=false;$("f").scrollIntoView({behavior:"smooth",block:"center"});$("t").focus()}
+$("cancel").onclick=resetForm;
+$("f").onsubmit=e=>{e.preventDefault();const t=$("t").value.trim();if(!t)return;
+if(kind==="w"&&!days.size){alert("Pick at least one day.");return}
+const dd=kind==="w"?[...days]:[];
+if(editId){const q=S.tasks.find(x=>x.id===editId);if(q){q.t=t;q.k=kind;q.days=dd}}else S.tasks.push({id:S.n++,t,k:kind,days:dd});
+save();resetForm();render()};
+render();
+// midnight rollover: keep "today" fresh when app is reopened
+document.addEventListener("visibilitychange",()=>{const n=new Date();n.setHours(12);if(!document.hidden&&key(n)!==key(today)){today.setTime(n.getTime());sel=new Date(n);render()}});
+if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
